@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hogwarts — Mundo Pixel</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+  :root { --gold:#f5c85b; --cream:#fff2c8; --night:#080e22; --panel:rgba(7,12,29,.78); }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; scroll-padding-top:80px; }
+  body {
+    margin:0; color:var(--cream); background:#080e22;
+    font-family:'VT323', monospace; font-size:22px; overflow-x:hidden;
+  }
+  /* Navegación fija */
+  .navbar { position:fixed; top:0; left:0; right:0; z-index:20; display:flex; justify-content:center; flex-wrap:wrap; gap:8px;
+    padding:12px; background:rgba(5,9,20,.88); border-bottom:2px solid rgba(245,200,91,.55); backdrop-filter:blur(8px); }
+  .navbar a { color:var(--cream); text-decoration:none; font-size:19px; padding:5px 10px; border:1px solid transparent; transition:.2s; }
+  .navbar a:hover, .navbar a:focus { color:var(--gold); border-color:var(--gold); transform:translateY(-2px); }
+  .hero {
+    min-height:100vh; position:relative; isolation:isolate; overflow:hidden;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:40px 20px 70px;
+    background:linear-gradient(#080e22 0%,#17294b 48%,#5a4568 75%,#d28a68 100%); animation:skyGlow 9s ease-in-out infinite alternate;
+  }
+  .stars { position:absolute; inset:0; z-index:-2; opacity:.9; animation:starDrift 35s linear infinite;
+    background-image:
+      radial-gradient(#fff5c4 1.5px,transparent 2px),radial-gradient(#c6e4ff 1px,transparent 2px),
+      radial-gradient(#fff 1px,transparent 2px);
+    background-size:97px 83px,131px 117px,61px 109px;
+    background-position:7px 13px,45px 28px,19px 51px;
+  }
+  .moon { animation:moonPulse 4s ease-in-out infinite; } position:absolute; top:9%; right:15%; width:86px; height:86px; background:#fff0bb;
+    box-shadow:0 0 0 10px rgba(255,240,187,.08),0 0 45px #ffe7a0; border-radius:50%; z-index:-1; }
+  .castle-wrap { position:absolute; bottom:0; left:0; right:0; height:66%; z-index:-1; display:flex; align-items:flex-end; justify-content:center; }
+  .castle { width:min(1000px,120vw); height:100%; image-rendering:pixelated; filter:drop-shadow(0 0 18px rgba(8,12,30,.4)); }
+  .mist { position:absolute; bottom:0; left:-10%; width:120%; height:18%; z-index:-1;
+    background:linear-gradient(transparent,rgba(18,22,43,.8)); }
+  .eyebrow { color:var(--gold); letter-spacing:4px; font-size:18px; margin:0 0 18px; text-shadow:2px 2px #1b1428; }
+  h1 { font-family:'Press Start 2P',monospace; font-size:clamp(27px,5vw,58px); line-height:1.5;
+    color:#ffe39a; text-shadow:4px 4px #412746,7px 7px #11172c; margin:0; max-width:1000px; }
+  .subtitle { font-size:clamp(23px,3vw,34px); margin:15px 0 28px; text-shadow:2px 2px #12172b; }
+  .cta { display:inline-block; padding:14px 20px; border:3px solid #ffe39a; background:#3c244f; color:#fff0bb;
+    text-decoration:none; font-family:'Press Start 2P',monospace; font-size:11px; box-shadow:5px 5px #11172c;
+    transition:transform .15s,background .15s; }
+  .cta:hover { transform:translate(3px,3px); box-shadow:2px 2px #11172c; background:#633b65; }
+  .scroll { position:absolute; bottom:14px; font-size:17px; color:#fff0bb; letter-spacing:2px; }
+  section { padding:70px max(20px,6vw); }
+  .lore { background:linear-gradient(180deg,#101a36,#17132d); border-top:4px solid #293657; }
+  .lore-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; max-width:1150px; margin:32px auto 0; }
+  .lore-card { background:rgba(5,9,20,.68); border:2px solid #59658b; padding:22px; box-shadow:5px 5px #050914; transition:transform .25s,border-color .25s; }
+  .lore-card:hover { transform:translateY(-6px) scale(1.015); border-color:var(--gold); }
+  .lore-card h3 { color:var(--gold); font-size:28px; margin:0 0 10px; }
+  .lore-card p, .lore-card li { color:#d8e0ff; }
+  .lore-card ul { padding-left:22px; margin-bottom:0; }
+  .timeline { max-width:900px; margin:34px auto 0; border-left:4px solid var(--gold); padding-left:24px; }
+  .event { position:relative; padding:0 0 26px 10px; }
+  .event:before { content:''; position:absolute; left:-34px; top:7px; width:14px; height:14px; background:var(--gold); border:3px solid #241d3b; box-shadow:0 0 12px #f5c85b; }
+  .event h3 { color:var(--gold); margin:0 0 5px; font-size:27px; }
+  .spell-box { max-width:760px; margin:30px auto 0; text-align:center; padding:28px; border:3px dashed var(--gold); background:#090f22; }
+  .spell-box button { cursor:pointer; margin:7px; padding:11px 15px; color:#fff0bb; background:#3c244f; border:2px solid var(--gold); font:16px 'Press Start 2P',monospace; transition:.15s; }
+  .spell-box button:hover { transform:scale(1.06); background:#633b65; }
+  #spellResult { min-height:32px; color:var(--gold); margin-top:18px; }
+  .section-title { text-align:center; font-family:'Press Start 2P',monospace; font-size:clamp(17px,2.5vw,27px);
+    color:var(--gold); line-height:1.7; margin:0 0 15px; }
+  .intro { text-align:center; max-width:760px; margin:0 auto 38px; color:#d8e0ff; font-size:25px; }
+  .characters { background:radial-gradient(ellipse at top,#1d2b50,#090f22 65%); }
+  .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px; max-width:1200px; margin:auto; }
+  .card { background:var(--panel); border:3px solid #59658b; padding:22px 14px; text-align:center;
+    box-shadow:6px 6px #050914; transition:transform .2s,border-color .2s; }
+  .card:hover { transform:translateY(-7px) rotate(-1deg); border-color:var(--gold); }
+  .sprite { animation:characterBob 3s ease-in-out infinite; }
+  .card:nth-child(even) .sprite { animation-delay:-1.3s; }
+  .sprite { width:150px; height:160px; max-width:100%; margin:0 auto 15px; image-rendering:pixelated; }
+  .card h3 { font-family:'Press Start 2P',monospace; font-size:13px; line-height:1.7; color:#ffe39a; }
+  .card p { margin:8px 0 0; color:#c8d4f7; font-size:22px; }
+  .house { display:inline-block; margin-top:13px; padding:5px 8px; border:2px solid currentColor; font-size:17px; }
+  .gryff { color:#ff7777; } .slyth { color:#70dfaa; } .raven { color:#8ebdff; } .huff { color:#ffdb70; }
+  .details { background:#0b1126; border-top:4px solid #293657; }
+  .feature-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; max-width:1100px; margin:35px auto 0; }
+  .feature { border:2px dashed #6c7398; padding:22px; background:#111a34; text-align:center; }
+  .feature .icon { font-size:40px; display:block; margin-bottom:12px; }
+  .feature h3 { color:var(--gold); font-size:27px; margin:0 0 8px; }
+  .feature p { color:#c8d4f7; margin:0; }
+  footer { text-align:center; padding:30px 15px; background:#050914; color:#9ca9cf; font-size:18px; }
+  .pixel-line { width:130px; height:8px; background:repeating-linear-gradient(90deg,#f5c85b 0 12px,transparent 12px 18px); margin:20px auto 0; }
+  @keyframes moonPulse { 0%,100%{box-shadow:0 0 0 10px rgba(255,240,187,.08),0 0 35px #ffe7a0} 50%{box-shadow:0 0 0 18px rgba(255,240,187,.04),0 0 65px #ffe7a0} }
+  @keyframes starDrift { from{background-position:7px 13px,45px 28px,19px 51px} to{background-position:104px 96px,-86px 145px,80px -58px} }
+  @keyframes characterBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+  @keyframes skyGlow { from{filter:hue-rotate(0deg)} to{filter:hue-rotate(9deg)} }
+  .reveal { opacity:0; transform:translateY(24px); transition:opacity .7s ease,transform .7s ease; }
+  .reveal.visible { opacity:1; transform:translateY(0); }
+  .spark { position:fixed; pointer-events:none; z-index:50; font-size:18px; animation:sparkFly .8s ease-out forwards; }
+  @keyframes sparkFly { to{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0} }
+  @media(max-width:850px) { .grid{grid-template-columns:repeat(2,minmax(0,1fr));} .feature-grid,.lore-grid{grid-template-columns:1fr;} .moon{right:8%;width:58px;height:58px;} .navbar{gap:2px}.navbar a{font-size:16px;padding:4px 7px;} }
+  @media(max-width:480px) { .grid{grid-template-columns:1fr;} .card{max-width:330px;width:100%;margin:auto;} .hero{min-height:90vh;} .castle-wrap{height:55%;} }
+</style>
+</head>
+<body>
+<nav class="navbar" aria-label="Navegación principal">
+  <a href="#inicio">Inicio</a><a href="#personajes">Personajes</a><a href="#casas">Casas</a><a href="#saga">La saga</a><a href="#hechizos">Hechizos</a>
+</nav>
+<header class="hero" id="inicio">
+  <div class="stars"></div><div class="moon"></div>
+  <div class="castle-wrap" aria-hidden="true">
+    <svg class="castle" viewBox="0 0 900 520" preserveAspectRatio="xMidYMax meet" shape-rendering="crispEdges">
+      <g fill="#10172e" stroke="#10172e" stroke-width="8" stroke-linejoin="miter">
+        <path d="M80 520V320H145V255H180V320H230V375H280V290H315V210H350V290H390V350H430V260H465V170H500V260H535V325H575V280H615V205H650V280H680V350H725V300H770V235H805V300H850V520Z"/>
+        <path d="M135 320V200H160V150H185V200H205V320Z"/>
+        <path d="M300 290V130H330V90H350V130H370V290Z"/>
+        <path d="M448 260V90H475V45H495V90H520V260Z"/>
+        <path d="M600 280V125H625V80H645V125H670V280Z"/>
+        <path d="M755 300V155H780V115H800V155H825V300Z"/>
+        <path d="M385 520V390H420V350H460V390H495V520Z"/>
+      </g>
+      <g fill="#252b49" stroke="#252b49" stroke-width="4" shape-rendering="crispEdges">
+        <rect x="105" y="355" width="50" height="165"/><rect x="215" y="400" width="48" height="120"/>
+        <rect x="320" y="300" width="48" height="220"/><rect x="430" y="300" width="48" height="220"/>
+        <rect x="545" y="360" width="50" height="160"/><rect x="690" y="385" width="55" height="135"/>
+        <rect x="800" y="345" width="35" height="175"/>
+      </g>
+      <g fill="#f1c66c">
+        <rect x="145" y="235" width="10" height="18"/><rect x="175" y="235" width="10" height="18"/>
+        <rect x="315" y="170" width="10" height="20"/><rect x="345" y="170" width="10" height="20"/>
+        <rect x="455" y="125" width="10" height="22"/><rect x="485" y="125" width="10" height="22"/>
+        <rect x="610" y="160" width="10" height="20"/><rect x="640" y="160" width="10" height="20"/>
+        <rect x="765" y="190" width="10" height="20"/><rect x="795" y="190" width="10" height="20"/>
+        <rect x="335" y="340" width="13" height="23"/><rect x="450" y="340" width="13" height="23"/>
+        <rect x="570" y="395" width="12" height="20"/><rect x="715" y="420" width="12" height="20"/>
+        <rect x="125" y="390" width="12" height="20"/><rect x="235" y="430" width="12" height="20"/>
+      </g>
+      <g fill="#080e22">
+        <rect x="445" y="420" width="50" height="100"/><rect x="455" y="400" width="30" height="20"/>
+      </g>
+      <path d="M0 520L0 490H100V470H180V490H270V460H360V490H450V470H540V490H650V460H750V490H900V520Z" fill="#090f22"/>
+    </svg>
+  </div>
+  <div class="mist"></div>
+  <p class="eyebrow">✦ UNA AVENTURA EN 8-BITS ✦</p>
+  <h1>HOGWARTS<br>PIXEL WORLD</h1>
+  <p class="subtitle">La magia comienza en cada píxel.</p>
+  <a class="cta" href="#personajes">ENTRAR AL CASTILLO</a>
+  <div class="scroll">▼ DESPLÁZATE PARA EXPLORAR ▼</div>
+</header>
+
+<main>
+<section class="characters" id="personajes">
+  <h2 class="section-title">PERSONAJES PIXELADOS</h2>
+  <p class="intro">Conoce a la pandilla más famosa del mundo mágico, reimaginada como pequeños héroes de videojuego retro.</p>
+  <div class="grid">
+    <article class="card">
+      <svg class="sprite" viewBox="0 0 16 18" shape-rendering="crispEdges" aria-label="Harry Potter en pixel art">
+        <rect x="4" y="1" width="8" height="2" fill="#22202b"/><rect x="3" y="3" width="10" height="5" fill="#e8b58b"/>
+        <rect x="2" y="3" width="2" height="4" fill="#22202b"/><rect x="12" y="3" width="2" height="4" fill="#22202b"/>
+        <rect x="5" y="5" width="2" height="1" fill="#222"/><rect x="10" y="5" width="2" height="1" fill="#222"/>
+        <rect x="7" y="6" width="2" height="1" fill="#b96f55"/><rect x="6" y="8" width="4" height="1" fill="#a33b42"/>
+        <rect x="3" y="9" width="10" height="7" fill="#263d71"/><rect x="6" y="9" width="4" height="7" fill="#d9d8d2"/>
+        <rect x="2" y="10" width="2" height="6" fill="#263d71"/><rect x="12" y="10" width="2" height="6" fill="#263d71"/>
+        <rect x="4" y="16" width="3" height="2" fill="#262538"/><rect x="9" y="16" width="3" height="2" fill="#262538"/>
+        <rect x="5" y="4" width="2" height="2" fill="none" stroke="#e6cf63" stroke-width=".6"/><rect x="9" y="4" width="2" height="2" fill="none" stroke="#e6cf63" stroke-width=".6"/>
+        <rect x="7" y="4" width="2" height=".7" fill="#e6cf63"/>
+        <rect x="3" y="2" width="10" height="1" fill="#2b1e24"/>
+      </svg>
+      <h3>Harry Potter</h3><p>El niño que sobrevivió, listo para su próxima misión.</p><span class="house gryff">GRYFFINDOR</span>
+    </article>
+    <article class="card">
+      <svg class="sprite" viewBox="0 0 16 18" shape-rendering="crispEdges" aria-label="Hermione Granger en pixel art">
+        <rect x="3" y="1" width="10" height="3" fill="#8a4b28"/><rect x="2" y="3" width="3" height="6" fill="#8a4b28"/><rect x="11" y="3" width="3" height="6" fill="#8a4b28"/>
+        <rect x="4" y="3" width="8" height="5" fill="#f0c39a"/><rect x="5" y="5" width="2" height="1" fill="#25202a"/><rect x="9" y="5" width="2" height="1" fill="#25202a"/>
+        <rect x="7" y="6" width="2" height="1" fill="#c77e67"/><rect x="4" y="8" width="8" height="1" fill="#a53b42"/>
+        <rect x="3" y="9" width="10" height="7" fill="#743044"/><rect x="6" y="9" width="4" height="7" fill="#ded8ce"/>
+        <rect x="2" y="10" width="2" height="6" fill="#743044"/><rect x="12" y="10" width="2" height="6" fill="#743044"/>
+        <rect x="4" y="16" width="3" height="2" fill="#262538"/><rect x="9" y="16" width="3" height="2" fill="#262538"/>
+        <rect x="3" y="2" width="2" height="3" fill="#a65e31"/><rect x="11" y="2" width="2" height="3" fill="#a65e31"/>
+      </svg>
+      <h3>Hermione Granger</h3><p>Ingenio, valentía y hechizos en su inventario.</p><span class="house gryff">GRYFFINDOR</span>
+    </article>
+    <article class="card">
+      <svg class="sprite" viewBox="0 0 16 18" shape-rendering="crispEdges" aria-label="Ron Weasley en pixel art">
+        <rect x="4" y="1" width="8" height="3" fill="#d66c32"/><rect x="3" y="3" width="10" height="5" fill="#f0c49b"/>
+        <rect x="3" y="3" width="2" height="3" fill="#d66c32"/><rect x="11" y="3" width="2" height="3" fill="#d66c32"/>
+        <rect x="5" y="5" width="2" height="1" fill="#28212a"/><rect x="9" y="5" width="2" height="1" fill="#28212a"/>
+        <rect x="7" y="6" width="2" height="1" fill="#c77e67"/><rect x="6" y="8" width="4" height="1" fill="#a53b42"/>
+        <rect x="3" y="9" width="10" height="7" fill="#253b6c"/><rect x="6" y="9" width="4" height="7" fill="#ded8ce"/>
+        <rect x="2" y="10" width="2" height="6" fill="#253b6c"/><rect x="12" y="10" width="2" height="6" fill="#253b6c"/>
+        <rect x="4" y="16" width="3" height="2" fill="#262538"/><rect x="9" y="16" width="3" height="2" fill="#262538"/>
+      </svg>
+      <h3>Ron Weasley</h3><p>Lealtad total, humor y cero ganas de comer verduras.</p><span class="house gryff">GRYFFINDOR</span>
+    </article>
+    <article class="card">
+      <svg class="sprite" viewBox="0 0 16 18" shape-rendering="crispEdges" aria-label="Draco Malfoy en pixel art">
+        <rect x="4" y="1" width="8" height="3" fill="#d7d1b9"/><rect x="3" y="3" width="10" height="5" fill="#efd0ae"/>
+        <rect x="3" y="2" width="3" height="2" fill="#d7d1b9"/><rect x="10" y="2" width="3" height="2" fill="#d7d1b9"/>
+        <rect x="5" y="5" width="2" height="1" fill="#202535"/><rect x="9" y="5" width="2" height="1" fill="#202535"/>
+        <rect x="7" y="6" width="2" height="1" fill="#c77e67"/><rect x="6" y="8" width="4" height="1" fill="#a53b42"/>
+        <rect x="3" y="9" width="10" height="7" fill="#245642"/><rect x="6" y="9" width="4" height="7" fill="#d9d8d2"/>
+        <rect x="2" y="10" width="2" height="6" fill="#245642"/><rect x="12" y="10" width="2" height="6" fill="#245642"/>
+        <rect x="4" y="16" width="3" height="2" fill="#262538"/><rect x="9" y="16" width="3" height="2" fill="#262538"/>
+      </svg>
+      <h3>Draco Malfoy</h3><p>Rivalidad, estilo y una actitud de jefe final.</p><span class="house slyth">SLYTHERIN</span>
+    </article>
+  </div>
+  <div class="pixel-line"></div>
+</section>
+
+<section class="lore" id="casas">
+  <h2 class="section-title">LAS CUATRO CASAS</h2>
+  <p class="intro">El Sombrero Seleccionador tiene la última palabra… ¿dónde encajarías tú?</p>
+  <div class="lore-grid">
+    <article class="lore-card"><h3>🦁 Gryffindor</h3><p>Valentía, audacia y determinación. Sus miembros suelen defender lo correcto incluso cuando da miedo.</p><p><strong>Colores:</strong> escarlata y dorado.</p></article>
+    <article class="lore-card"><h3>🦅 Ravenclaw</h3><p>Ingenio, curiosidad y amor por el conocimiento. Las buenas ideas son su mayor tesoro.</p><p><strong>Colores:</strong> azul y bronce en los libros.</p></article>
+    <article class="lore-card"><h3>🦡 Hufflepuff</h3><p>Lealtad, paciencia y trabajo duro. Una casa que valora la justicia y trata a los demás con respeto.</p><p><strong>Colores:</strong> amarillo y negro.</p></article>
+    <article class="lore-card"><h3>🐍 Slytherin</h3><p>Ambición, astucia e ingenio para encontrar el camino hacia sus metas.</p><p><strong>Colores:</strong> verde y plateado.</p></article>
+    <article class="lore-card"><h3>🎩 El Sombrero</h3><p>La selección considera las cualidades de cada estudiante… y también sus propias decisiones.</p></article>
+    <article class="lore-card"><h3>✨ Dato mágico</h3><p>Ninguna casa es solo una etiqueta: el valor de una persona depende de las decisiones que toma.</p></article>
+  </div>
+</section>
+<section class="lore" id="saga">
+  <h2 class="section-title">LA SAGA: MOMENTOS CLAVE</h2>
+  <p class="intro">Un recorrido por los grandes hitos de la historia, desde la carta de admisión hasta la batalla final. <em>(¡Spoilers leves!)</em></p>
+  <div class="timeline">
+    <div class="event"><h3>01 · La carta de Hogwarts</h3><p>Harry descubre que pertenece al mundo mágico y comienza una vida completamente nueva.</p></div>
+    <div class="event"><h3>02 · La piedra filosofal</h3><p>En su primer año, Harry encuentra amistad, secretos y una amenaza escondida dentro del castillo.</p></div>
+    <div class="event"><h3>03 · El Torneo de los Tres Magos</h3><p>Una competición peligrosa marca un punto de inflexión y anuncia que el peligro ha regresado.</p></div>
+    <div class="event"><h3>04 · La búsqueda de los Horrocruxes</h3><p>Harry, Ron y Hermione dejan atrás la escuela para buscar la forma de derrotar a Voldemort.</p></div>
+    <div class="event"><h3>05 · La batalla de Hogwarts</h3><p>La historia llega a su clímax: amistad, sacrificio y valentía deciden el futuro del mundo mágico.</p></div>
+  </div>
+</section>
+<section class="lore" id="hechizos">
+  <h2 class="section-title">¡PRUEBA UN HECHIZO!</h2>
+  <p class="intro">Pulsa un hechizo para descubrir qué hace. ¡Agita tu varita imaginaria!</p>
+  <div class="spell-box">
+    <button type="button" data-spell="Lumos">LUMOS</button>
+    <button type="button" data-spell="Expelliarmus">EXPELLIARMUS</button>
+    <button type="button" data-spell="Wingardium Leviosa">WINGARDIUM LEVIOSA</button>
+    <button type="button" data-spell="Expecto Patronum">EXPECTO PATRONUM</button>
+    <div id="spellResult" aria-live="polite">Elige un hechizo para comenzar…</div>
+  </div>
+</section>
+
+<section class="details" id="explora">
+  <h2 class="section-title">TU PRÓXIMA AVENTURA</h2>
+  <p class="intro">Prepara tu varita, elige tu camino y descubre los rincones secretos de Hogwarts.</p>
+  <div class="feature-grid">
+    <article class="feature"><span class="icon">⚡</span><h3>Hechizos</h3><p>Aprende magia y desbloquea nuevas habilidades.</p></article>
+    <article class="feature"><span class="icon">🏰</span><h3>El castillo</h3><p>Explora torres, pasillos misteriosos y salones encantados.</p></article>
+    <article class="feature"><span class="icon">🪄</span><h3>Tu misión</h3><p>Encuentra tu casa y conviértete en leyenda mágica.</p></article>
+  </div>
+</section>
+</main>
+<footer>✦ Hecho con magia, imaginación y píxeles ✦<br>Fan page no oficial inspirada en el mundo de Harry Potter.</footer>
+<script>
+  // Revela las tarjetas al entrar en pantalla y activa los hechizos.
+  document.querySelectorAll('.card, .lore-card, .event, .feature, .section-title, .intro').forEach(el => el.classList.add('reveal'));
+  const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+    if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }
+  }), { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  const spellInfo = {
+    'Lumos': '✨ ¡La punta de tu varita se ilumina! Sirve para crear luz.',
+    'Expelliarmus': '💥 ¡Desarmado! Este hechizo hace que el oponente suelte su varita.',
+    'Wingardium Leviosa': '🪶 ¡El objeto flota por el aire! Recuerda: leviosa, no leviosá.',
+    'Expecto Patronum': '🦌 ¡Un Patronus aparece para protegerte de los Dementores!'
+  };
+  document.querySelectorAll('[data-spell]').forEach(button => button.addEventListener('click', () => {
+    document.getElementById('spellResult').textContent = spellInfo[button.dataset.spell];
+    for (let i = 0; i < 12; i++) {
+      const spark = document.createElement('span'); spark.className = 'spark'; spark.textContent = ['✦','✧','✨'][i % 3];
+      spark.style.left = (window.innerWidth * (0.25 + Math.random() * 0.5)) + 'px';
+      spark.style.top = (window.innerHeight * (0.3 + Math.random() * 0.4)) + 'px';
+      spark.style.setProperty('--dx', ((Math.random() - .5) * 180) + 'px'); spark.style.setProperty('--dy', ((Math.random() - .5) * 160) + 'px');
+      document.body.appendChild(spark); setTimeout(() => spark.remove(), 850);
+    }
+  }));
+</script>
+</body>
+</html>
